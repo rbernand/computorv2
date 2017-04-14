@@ -1,2 +1,1 @@
-prompt-toolkit==1.0.14
-pytest==3.0.7
+prompt-toolkit
