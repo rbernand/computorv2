@@ -27,4 +27,7 @@ setup(
         'Operating System :: *',
         'Programming Language :: Python :: 3',
     ],
+    entry_points={
+        'console_scripts': ['computorv2=computor.main:main']
+    }
 )
