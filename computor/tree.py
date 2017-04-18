@@ -41,12 +41,6 @@ class Node:
         if self.right:
             self.right.print_tree(_depth=_depth + 1)
 
-    @staticmethod
-    def iter_parent_to_right(root):
-        while root:
-            yield (root, root.right)
-            root = root.right
-
     def get_root(self):
         if self.parent is None:
             return self
