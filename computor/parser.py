@@ -57,6 +57,13 @@ class Parser:
         current = ""
 #        line_ = iter(line)  # Allow the string to be iterate recursively. May should use non local an dsud function
         for i, c in enumerate(line):
+            if c == '[':
+                matrix_depth += 1
+            elif c == ']':
+                matrix_depth -= 1
+            if matrix_depth > 0:
+                current += c
+                continue
             if c.isspace():
                 continue
             if c == ')':
