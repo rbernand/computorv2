@@ -51,20 +51,18 @@ class Parser:
     def __init__(self):
         pass
 
-    def _lex(self, line, iter_=None):
-        print(line)
+    def _lex(self, line):
+        matrix_depth = 0
         tokens = []
         current = ""
-        line_ = iter(line)  # Allow the string to be iterate recursively. May should use non local an dsud function
-        for i, c in enumerate(line_):
-            if iter_:
-                next(iter_)
+#        line_ = iter(line)  # Allow the string to be iterate recursively. May should use non local an dsud function
+        for i, c in enumerate(line):
             if c.isspace():
                 continue
             if c == ')':
                 break
             if c == '(':
-                tokens.append(self._lex(line[i + 1:], line_))
+                tokens.append(self._lex(line))
                 continue
             if c in Parser.SEPARATORS:
                 if current:
@@ -95,13 +93,12 @@ class Parser:
                                  self._parse(tokens[sep:]))
 
     def parse_line(self, line):
-        tokens = self._lex(line)
+        tokens = self._lex(iter(line))
         if '=' in tokens:
             sep = tokens.index('=')
             del(tokens[sep])
             var = tokens[:sep]
             tokens = tokens[sep:]
-            print(var)
         print(tokens)
         command = self._parse(tokens)
         return command
