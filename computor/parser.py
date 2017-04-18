@@ -55,7 +55,7 @@ class Parser:
         print(line)
         tokens = []
         current = ""
-        line_ = iter(line)
+        line_ = iter(line)  # Allow the string to be iterate recursively. May should use non local an dsud function
         for i, c in enumerate(line_):
             if iter_:
                 next(iter_)
