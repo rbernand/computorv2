@@ -21,8 +21,7 @@ Usage:
 
 
 def prompt_command():
-    print('>>> ', end='')
-    return prompt()
+    return prompt(">>> ")
 
 
 def set_log_level(verbose, debug):
@@ -45,9 +44,10 @@ def main():
     set_log_level(opts['-v'], opts['-d'])
     parser = Parser()
     try:
-        for line in iter(prompt_command, ''):
+        for line in filter(bool, iter(prompt_command, 'exit')):
             log.info('Command: %s', line)
             root = parser.parse_line(line)
+            print(root())
             log.debug('Tree display:\n%s\n%s\n%s', '_' * 30, root.tostr(), '-' * 30)
     except (EOFError, KeyboardInterrupt):
         print('exit')

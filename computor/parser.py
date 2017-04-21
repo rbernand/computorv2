@@ -1,6 +1,9 @@
 from computor.tree import Node
 from computor import log
 
+import sys
+sys.setrecursionlimit(70)
+
 
 class Token(Node):
     OPERATORS = (
@@ -16,6 +19,20 @@ class Token(Node):
         '(',
         ')'
     )
+
+    @staticmethod
+    def factory(value, left=None, right=None):
+        if value.isalpha():
+            return Variable(value, left, right)
+        constructors = {
+            '+': Add,
+            '-': Sub,
+            '*': Mul,
+            '/': Div,
+            '^': Pow,
+        }
+        return constructors.get(value, Value)(value, left, right)
+
 
     def __init__(self, value, left=None, right=None):
         super().__init__(left, right)
@@ -40,6 +57,48 @@ class Token(Node):
         return self.value == rhs.value\
             and ((self.left == rhs.left and self.right == rhs.right) or
                  (self.left == rhs.right and self.right == rhs.left))
+
+
+class Add(Token):
+    def __call__(self):
+        return self.left() + self.right()
+
+
+class Sub(Token):
+    def __call__(self):
+        if self.right is None and self.left:
+            return 0 - self.left()
+        elif self.left is None and self.right:
+            return 0 - self.right()
+        else:
+            return self.left() - self.right()
+
+
+class Value(Token):
+    def __call__(self):
+        return float(self.value)
+
+
+class Mul(Token):
+    def __call__(self):
+        return self.left() * self.right()
+
+
+class Div(Token):
+    def __call__(self):
+        return self.left() / self.right()
+
+
+class Pow(Token):
+    def __call__(self):
+        return self.left() ** self.right()
+
+
+class Variable(Token):
+    instances = set()
+
+    def __call__(self):
+        return self.value
 
 
 class Parser:
@@ -89,7 +148,7 @@ class Parser:
         if len(tokens) == 1:
             if isinstance(tokens[0], list):
                 return self._parse(tokens[0])
-            return Token(tokens[0])
+            return Token.factory(tokens[0])
         if len(tokens) == 0:
             return
         else:
@@ -97,7 +156,7 @@ class Parser:
                 if operator in tokens:
                     sep = tokens.index(operator)
                     value = tokens.pop(sep)
-                    return Token(value,
+                    return Token.factory(value,
                                  self._parse(tokens[:sep]),
                                  self._parse(tokens[sep:]))
 
