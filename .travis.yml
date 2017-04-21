@@ -1,11 +1,18 @@
 language: python
+
 python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "nightly" # currently points to 3.7-dev
+  - "nightly"
+
 install:
   - pip install .
+  - pip install coveralls
   - pip install -r requirements.txt
+
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == "3.4" ]]; then py.test; else pytest; fi
+  - coverage run --source=computor setup.py test
+
+after_success:
+  coveralls

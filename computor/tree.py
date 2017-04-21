@@ -4,8 +4,10 @@ class Node:
         self.right = right
 
     @classmethod
-    def empty(cls, value):
-        return cls(None, None, None)
+    def empty(cls, *args):
+        if cls == Node:
+            return cls(None, None)
+        return cls(None, None, *args)
 
     @property
     def depth(self):

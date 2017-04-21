@@ -19,6 +19,9 @@ setup(
     author_email='robinson.bernand@student.42.com',
     packages=find_packages(),
     include_package_data=True,
+    setup_requires=[
+        'pytest-runner'
+    ],
     install_requires=[
         'prompt-toolkit',
         'docopt',

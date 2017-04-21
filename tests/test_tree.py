@@ -2,7 +2,7 @@ from computor.tree import Node
 
 
 def test_node():
-    t = Node.empty(0)
+    Node.empty()
 
 
 def test_depth():
@@ -16,7 +16,6 @@ def test_depth():
     root.left.left = Node.empty(0)
     assert root.depth == 3
     assert root.left.depth == 2
-    root.print_tree()
 
 
 def test_size():
@@ -30,4 +29,3 @@ def test_size():
     root.left.left = Node.empty(0)
     assert root.size == 4
     assert root.left.size == 2
-    rsoot.print_tree()
