@@ -30,4 +30,4 @@ def test_size():
     root.left.left = Node.empty(0)
     assert root.size == 4
     assert root.left.size == 2
-    root.print_tree()
+    rsoot.print_tree()

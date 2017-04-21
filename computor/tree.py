@@ -1,6 +1,5 @@
 class Node:
-    def __init__(self, parent, left, right):
-        self.parent = parent
+    def __init__(self, left, right):
         self.left = left
         self.right = right
 
@@ -28,20 +27,15 @@ class Node:
             return 1 + self.right.size
         return 1
 
-    def tostr(self):
+    def __str__(self):
         return "Node: %s" % id(self)
 
-    def print_tree(self, sep="--", _depth=0):
-        if _depth == 0:
-            print("")
+    def tostr(self, sep="--"):
+        def recurse(node, _depth=0):
+            yield fmt % (sep * _depth, str(node))
+            if node.left:
+                yield from recurse(node.left, _depth + 1)
+            if node.right:
+                yield from recurse(node.right, _depth + 1)
         fmt = "|%s %s"
-        print(fmt % (sep * _depth, self.tostr()))
-        if self.left:
-            self.left.print_tree(_depth=_depth + 1)
-        if self.right:
-            self.right.print_tree(_depth=_depth + 1)
-
-    def get_root(self):
-        if self.parent is None:
-            return self
-        return self.parent.get_root()
+        return "\n".join(recurse(self))

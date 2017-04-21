@@ -1,4 +1,5 @@
 from computor.tree import Node
+from computor import log
 
 
 class Token(Node):
@@ -16,9 +17,9 @@ class Token(Node):
         ')'
     )
 
-    def __init__(self, value, parent=None, left=None, right=None):
-        super().__init__(parent, left, right)
-        self._value = value
+    def __init__(self, value, left=None, right=None):
+        super().__init__(left, right)
+        self.value = value
 
     def __repr__(self):
         return "<Token '%s'>" % self._value
@@ -31,11 +32,14 @@ class Token(Node):
     def value(self, value):
         self._value = value
 
-    def tostr(self):
-        return "Token: %s" % self.value
+    def __str__(self):
+        return "Token: [%s]" % self.value
 
     def __eq__(self, rhs):
-        return self.value == rhs.value
+        print(self, rhs)
+        return self.value == rhs.value\
+            and ((self.left == rhs.left and self.right == rhs.right) or
+                 (self.left == rhs.right and self.right == rhs.left))
 
 
 class Parser:
@@ -51,20 +55,24 @@ class Parser:
     def __init__(self):
         pass
 
-    def _lex(self, line, iter_=None):
-        print(line)
+    def _lex(self, line):
+        matrix_depth = 0
         tokens = []
         current = ""
-        line_ = iter(line)  # Allow the string to be iterate recursively. May should use non local an dsud function
-        for i, c in enumerate(line_):
-            if iter_:
-                next(iter_)
+        for i, c in enumerate(line):
+            if c == '[':
+                matrix_depth += 1
+            elif c == ']':
+                matrix_depth -= 1
+            if matrix_depth > 0:
+                current += c
+                continue
             if c.isspace():
                 continue
             if c == ')':
                 break
             if c == '(':
-                tokens.append(self._lex(line[i + 1:], line_))
+                tokens.append(self._lex(line))
                 continue
             if c in Parser.SEPARATORS:
                 if current:
@@ -90,18 +98,16 @@ class Parser:
                     sep = tokens.index(operator)
                     value = tokens.pop(sep)
                     return Token(value,
-                                 None,
                                  self._parse(tokens[:sep]),
                                  self._parse(tokens[sep:]))
 
     def parse_line(self, line):
-        tokens = self._lex(line)
+        tokens = self._lex(iter(line))
+        log.debug('tokens: %s', tokens)
         if '=' in tokens:
             sep = tokens.index('=')
             del(tokens[sep])
             var = tokens[:sep]
             tokens = tokens[sep:]
-            print(var)
-        print(tokens)
         command = self._parse(tokens)
         return command
