@@ -1,9 +1,8 @@
 from computor.tree import Node
 from computor import log
 
-import sys
-sys.setrecursionlimit(70)
-
+#import sys
+#sys.setrecursionlimit(70)
 
 class Token(Node):
     OPERATORS = (
@@ -32,7 +31,6 @@ class Token(Node):
             '^': Pow,
         }
         return constructors.get(value, Value)(value, left, right)
-
 
     def __init__(self, value, left=None, right=None):
         super().__init__(left, right)
@@ -75,8 +73,17 @@ class Sub(Token):
 
 
 class Value(Token):
-    def __call__(self):
-        return float(self.value)
+   def __call__(self):
+        try:
+            return float(self.value)
+        except ValueError:
+            if self.value.isalpha():
+                try:
+                    return Variables.get(self.value)
+                except KeyError:
+                    log.error("Variable Not found '%s'", self.value)
+            else:
+                pass  # is imaginary
 
 
 class Mul(Token):
@@ -114,7 +121,7 @@ class Parser:
     def __init__(self):
         pass
 
-    def _lex(self, line):
+    def lex_line(self, line):
         matrix_depth = 0
         tokens = []
         current = ""
@@ -131,7 +138,7 @@ class Parser:
             if c == ')':
                 break
             if c == '(':
-                tokens.append(self._lex(line))
+                tokens.append(self.lex_line(line))
                 continue
             if c in Parser.SEPARATORS:
                 if current:
@@ -160,13 +167,13 @@ class Parser:
                                  self._parse(tokens[:sep]),
                                  self._parse(tokens[sep:]))
 
-    def parse_line(self, line):
-        tokens = self._lex(iter(line))
+    def parse_calculation(self, line):
+        tokens = self.lex_line(iter(line))
         log.debug('tokens: %s', tokens)
         if '=' in tokens:
             sep = tokens.index('=')
             del(tokens[sep])
-            var = tokens[:sep]
+            Variables.add(tokens[:sep])
             tokens = tokens[sep:]
         command = self._parse(tokens)
         return command

@@ -3,7 +3,10 @@ import logging
 
 import computor
 from computor import log
+
 from prompt_toolkit import prompt
+from prompt_toolkit.history import FileHistory
+
 from computor.parser import Parser
 
 
@@ -21,7 +24,7 @@ Usage:
 
 
 def prompt_command():
-    return prompt(">>> ")
+    return prompt(">>> ", history=FileHistory('.computor_history'))
 
 
 def set_log_level(verbose, debug):
@@ -39,16 +42,20 @@ def set_log_level(verbose, debug):
         log.debug("Start computorv2 in debug mode")
 
 
+def main_loop():
+    parser = Parser()
+    for line in filter(bool, iter(prompt_command, 'exit')):
+        log.info('Command: %s', line)
+        root = parser.parse_computation(line)
+        print(root())
+        log.debug('Tree display:\n%s\n%s\n%s', '_' * 30, root.tostr(), '-' * 30)
+
+
 def main():
     opts = docopt(__doc__, version=computor.__version__)
     set_log_level(opts['-v'], opts['-d'])
-    parser = Parser()
     try:
-        for line in filter(bool, iter(prompt_command, 'exit')):
-            log.info('Command: %s', line)
-            root = parser.parse_line(line)
-            print(root())
-            log.debug('Tree display:\n%s\n%s\n%s', '_' * 30, root.tostr(), '-' * 30)
+        main_loop()
     except (EOFError, KeyboardInterrupt):
         print('exit')
 
