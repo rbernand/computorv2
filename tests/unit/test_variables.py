@@ -1,5 +1,4 @@
 from computor import variables
-from computor.tokens import Variable
 
 
 def test_basics():

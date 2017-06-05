@@ -1,10 +1,9 @@
 from enum import Enum
 
-from computor import LOG, variables
+from computor import LOG, variables, functions
 from computor.parser import Parser
-from computor.tokens import Token
-from computor.tokens import Variable, Function
-from computor.exceptions import ComputorTypeError, ComputorUnknownCommandError
+from computor.tokens import Token, Variable, Function
+from computor.exceptions import ComputorUnknownCommandError
 from computor.commands import COMMANDS
 
 
@@ -48,7 +47,7 @@ class Executor:
         elif self.is_command():
             return self.Type.COMMAND
         else:
-            raise ComputorTypeError("Cannot determinate type")
+            raise NotImplementedError("Cannot determinate type")
 
     def run(self):
         actions = {
@@ -60,8 +59,15 @@ class Executor:
 
     def execute_assignation(self):
         res = self._right()
-        LOG.debug('Assigning value: %f to variable %s', res, self._left.name)
-        variables.add(self._left.name, res)
+        LOG.debug('Assigning value: %f to %s %s',
+                  res,
+                  ['variable', 'function'][isinstance(self._left, Function)],
+                  self._left.name)
+        destinations = {
+            Function: functions,
+            Variable: variables
+        }
+        destinations[self._left.__class__].add(self._left.name, res)
 
     def execute_calculation(self):
         print(self._right())

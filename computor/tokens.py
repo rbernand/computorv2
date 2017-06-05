@@ -104,6 +104,10 @@ class Variable(Token):
         super().__init__(value, left, right)
         self._name = value
 
+    @property
+    def name(self):
+        return self._name
+
     def __call__(self):
         return Value(variables.get(self._name))()
 
@@ -112,7 +116,11 @@ class Variable(Token):
 
 
 class Function(Token):
-    def __init__(self, funcname, varname, left=None, right=None):
-        super().__init__(funcname, left, right)
-        self._funcname = funcname
+    def __init__(self, name, varname, left=None, right=None):
+        super().__init__(name, left, right)
+        self._name = name
         self._varname = varname
+
+    @property
+    def name(self):
+        return self._name

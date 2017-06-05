@@ -1,0 +1,20 @@
+Allow lexer/parser to undertand functions like 1 + 2 + foo(3)
+  - foo must be known
+  - maybe convert Varaible(foo) followed by subtokens 3 to Function ?
+
+Add subtype to Value
+  - Int, float muste be handled
+  - 'i' imaginary nuber also
+  - Same as above, maybe use tree to determinqte if Value is Complex
+
+Parse Matrix, Then calc them!
+  - Matrix re lexed, but not converted to structure, so not yet validated
+  - implement calcul method
+    - Cross product
+    - dot Product
+    - ...
+
+Add conand for session
+  - save to pickle
+  - load from picke
+

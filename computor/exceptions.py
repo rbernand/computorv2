@@ -7,7 +7,16 @@ class ComputorSyntaxError(ComputorError, SyntaxError):
 
 
 class ComputorTypeError(ComputorError, TypeError):
-    pass
+    def __init__(self, value, *expected):
+        super().__init__()
+        self.value = value
+        self.expected = expected
+
+    def __str__(self):
+        out = "Invalid type '%s'" % self.value.__name__
+        if self.expected:
+            out += '\nExpected: ' + ', '.join(x.__name__ for x in self.expected)
+        return out
 
 
 class ComputorUnknownCommandError(ComputorError):

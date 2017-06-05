@@ -1,11 +1,7 @@
-from computor.parser import Token, Parser
+import pytest
 
-
-import logging
-
-
-log = logging.getLogger('coùmputor')
-log.setLevel(logging.DEBUG)
+from computor.parser import Parser
+from computor.tokens import Token, Variable, Function
 
 
 def test_basics():
@@ -53,3 +49,15 @@ def test_parenthesis():
                           Token('4'),
                           Token('5'))))
     assert a == parser.parse_calculation('(1 - 2) * (3 / (4 + 5))')
+
+
+def test_parse_variable():
+    parser = Parser()
+    assert isinstance(parser.parse_var_or_func('foo'), Variable)
+    assert isinstance(parser.parse_var_or_func('foo(x)'), Function)
+    with pytest.raises(SyntaxError): parser.parse_var_or_func('i')
+    with pytest.raises(SyntaxError): parser.parse_var_or_func('i(x)')
+    with pytest.raises(SyntaxError): parser.parse_var_or_func('i(i)')
+    with pytest.raises(SyntaxError): parser.parse_var_or_func('a42')
+    with pytest.raises(SyntaxError): parser.parse_var_or_func('42(x)')
+    with pytest.raises(SyntaxError): parser.parse_var_or_func('foo(43)')

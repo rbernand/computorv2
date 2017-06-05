@@ -1,5 +1,6 @@
 import logging
 from docopt import docopt
+from functools import partial
 
 import computor
 from computor import LOG
@@ -30,7 +31,10 @@ def prompt_command():
     completer = WordCompleter(COMMANDS.keys())
     return prompt(">>> ",
                   history=FileHistory('.computor_history'),
-                  completer=completer)
+                  completer=completer,
+                  complete_while_typing=False,
+                  enable_history_search=True,
+                  get_title=partial(print, 'foo'))
 
 
 def set_log_level(verbose, debug):
@@ -54,7 +58,6 @@ def main_loop():
         try:
             executor = Executor(line)
             executor.run()
-            from computor import variables
         except SyntaxError as err:
             print("invalid command: '%s'" % line)
             print("Reason: '%s'" % err)
