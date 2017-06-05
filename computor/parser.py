@@ -1,115 +1,14 @@
-from computor.tree import Node
-from computor import log
+import re
 
-#import sys
-#sys.setrecursionlimit(70)
-
-class Token(Node):
-    OPERATORS = (
-        '=',
-        '*',
-        '+',
-        '-',
-        '/',
-        '%',
-        '^'
-    )
-    SEPARATORS = (
-        '(',
-        ')'
-    )
-
-    @staticmethod
-    def factory(value, left=None, right=None):
-        if value.isalpha():
-            return Variable(value, left, right)
-        constructors = {
-            '+': Add,
-            '-': Sub,
-            '*': Mul,
-            '/': Div,
-            '^': Pow,
-        }
-        return constructors.get(value, Value)(value, left, right)
-
-    def __init__(self, value, left=None, right=None):
-        super().__init__(left, right)
-        self.value = value
-
-    def __repr__(self):
-        return "<Token '%s'>" % self._value
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        self._value = value
-
-    def __str__(self):
-        return "Token: [%s]" % self.value
-
-    def __eq__(self, rhs):
-        print(self, rhs)
-        return self.value == rhs.value\
-            and ((self.left == rhs.left and self.right == rhs.right) or
-                 (self.left == rhs.right and self.right == rhs.left))
-
-
-class Add(Token):
-    def __call__(self):
-        return self.left() + self.right()
-
-
-class Sub(Token):
-    def __call__(self):
-        if self.right is None and self.left:
-            return 0 - self.left()
-        elif self.left is None and self.right:
-            return 0 - self.right()
-        else:
-            return self.left() - self.right()
-
-
-class Value(Token):
-   def __call__(self):
-        try:
-            return float(self.value)
-        except ValueError:
-            if self.value.isalpha():
-                try:
-                    return Variables.get(self.value)
-                except KeyError:
-                    log.error("Variable Not found '%s'", self.value)
-            else:
-                pass  # is imaginary
-
-
-class Mul(Token):
-    def __call__(self):
-        return self.left() * self.right()
-
-
-class Div(Token):
-    def __call__(self):
-        return self.left() / self.right()
-
-
-class Pow(Token):
-    def __call__(self):
-        return self.left() ** self.right()
-
-
-class Variable(Token):
-    instances = set()
-
-    def __call__(self):
-        return self.value
+from computor import LOG
+from computor.exceptions import ComputorSyntaxError
+from computor.tokens import Token, Variable, Function
 
 
 class Parser:
     SEPARATORS = Token.OPERATORS + ('(', ')')
+    REGEX_FUNCTION = re.compile(r'^(?!i)([a-zA-Z]+)\((?!i)([a-zA-Z]+)\)$')
+    REGEX_VARIABLE = re.compile(r'^(?!i)([a-zA-Z]+)$')
     PRIORITIES = [
         '+',
         '-',
@@ -125,28 +24,28 @@ class Parser:
         matrix_depth = 0
         tokens = []
         current = ""
-        for i, c in enumerate(line):
-            if c == '[':
+        for char in line:
+            if char == '[':
                 matrix_depth += 1
-            elif c == ']':
+            elif char == ']':
                 matrix_depth -= 1
             if matrix_depth > 0:
-                current += c
+                current += char
                 continue
-            if c.isspace():
+            if char.isspace():
                 continue
-            if c == ')':
+            if char == ')':
                 break
-            if c == '(':
+            if char == '(':
                 tokens.append(self.lex_line(line))
                 continue
-            if c in Parser.SEPARATORS:
+            if char in Parser.SEPARATORS:
                 if current:
                     tokens.append(current)
-                tokens.append(c)
+                tokens.append(char)
                 current = ""
             else:
-                current += c
+                current += char
         if current:
             tokens.append(current)
         return tokens
@@ -156,24 +55,42 @@ class Parser:
             if isinstance(tokens[0], list):
                 return self._parse(tokens[0])
             return Token.factory(tokens[0])
-        if len(tokens) == 0:
+        if tokens == []:
             return
         else:
             for operator in Parser.PRIORITIES:
                 if operator in tokens:
                     sep = tokens.index(operator)
                     value = tokens.pop(sep)
-                    return Token.factory(value,
-                                 self._parse(tokens[:sep]),
-                                 self._parse(tokens[sep:]))
+                    return Token.factory(
+                        value,
+                        self._parse(tokens[:sep]),
+                        self._parse(tokens[sep:]))
 
     def parse_calculation(self, line):
         tokens = self.lex_line(iter(line))
-        log.debug('tokens: %s', tokens)
-        if '=' in tokens:
-            sep = tokens.index('=')
-            del(tokens[sep])
-            Variables.add(tokens[:sep])
-            tokens = tokens[sep:]
-        command = self._parse(tokens)
-        return command
+        return self._parse(tokens)
+
+    def parse_var_or_func(self, line):
+        try:
+            funcname, varname = self.REGEX_FUNCTION.match(line).groups()
+            return Function(funcname, varname)
+        except AttributeError:
+            LOG.debug('"%s" is not a funtion name', line)
+        try:
+            varname, = self.REGEX_VARIABLE.match(line).groups()
+            return Variable(line)
+        except AttributeError:
+            raise ComputorSyntaxError('"%s" is neither a valid var name or func name.' % line)
+
+    def parse_input(self, line):
+        if '=' in line:
+            try:
+                left, right = line.split('=')
+                if right == '?':
+                    left, right = None, left
+                else:
+                    return self.parse_var_or_func(left), self.parse_calculation(right)
+            except ValueError:
+                raise ComputorSyntaxError("Too many '='")
+        return None, self.parse_calculation(line)
