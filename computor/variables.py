@@ -1,11 +1,15 @@
 from computor import LOG
+from computor.exceptions import ComputorUnknownVariableError
 
 
 VARIABLES = {}
 
 
 def get(value):
-    return VARIABLES[value]
+    try:
+        return VARIABLES[value]
+    except KeyError:
+        raise ComputorUnknownVariableError(value)
 
 
 def add(key, value):

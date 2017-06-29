@@ -3,7 +3,7 @@ from enum import Enum
 from computor import LOG, variables, functions
 from computor.parser import Parser
 from computor.tokens import Token, Variable, Function
-from computor.exceptions import ComputorUnknownCommandError
+from computor.exceptions import ComputorError, ComputorUnknownCommandError
 from computor.commands import COMMANDS
 
 
@@ -55,18 +55,24 @@ class Executor:
             self.Type.CALCULATION: self.execute_calculation,
             self.Type.COMMAND: self.execute_command,
         }
-        actions[self.type]()
+        try:
+            actions[self.type]()
+        except ComputorError as err:
+            print(err)
 
     def execute_assignation(self):
-        res = self._right()
-        LOG.debug('Assigning value: %f to %s %s',
-                  res,
-                  ['variable', 'function'][isinstance(self._left, Function)],
-                  self._left.name)
         destinations = {
             Function: functions,
             Variable: variables
         }
+        if isinstance(self._left, Function):
+            res = self._left.reduce(self._right)
+        else:
+            res = self._right()
+        LOG.debug('Assigning value: %s to %s %s',
+                  res.tostring(),
+                  ['variable', 'function'][isinstance(self._left, Function)],
+                  self._left.name)
         destinations[self._left.__class__].add(self._left.name, res)
 
     def execute_calculation(self):

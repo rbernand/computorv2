@@ -47,6 +47,9 @@ class Token(Node):
     def value(self, value):
         self._value = value
 
+    def tostring(self, sep=" "):
+        return sep.join(str(x.value) for x in self)
+
     def __str__(self):
         return "%s: [%s]" % (self.__class__.__name__, self.value)
 
@@ -124,3 +127,6 @@ class Function(Token):
     @property
     def name(self):
         return self._name
+
+    def reduce(self, tokens):
+        return tokens

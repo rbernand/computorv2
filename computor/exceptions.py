@@ -26,3 +26,21 @@ class ComputorUnknownCommandError(ComputorError):
 
     def __str__(self):
         return "Unknown command: '%s'" % self.msg
+
+
+class ComputorUnknownVariableError(ComputorError):
+    def __init__(self, msg):
+        super().__init__()
+        self.msg = msg
+
+    def __str__(self):
+        return "Unknown variable: '%s'" % self.msg
+
+
+class ComputorUnknownFunctionError(ComputorError):
+    def __init__(self, msg):
+        super().__init__()
+        self.msg = msg
+
+    def __str__(self):
+        return "Unknown function: '%s'" % self.msg

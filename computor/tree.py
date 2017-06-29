@@ -41,3 +41,11 @@ class Node:
                 yield from recurse(node.right, _depth + 1)
         fmt = "|%s %s"
         return "\n".join(recurse(self))
+
+
+    def __iter__(self):
+        if self.left:
+            yield from iter(self.left)
+        yield self
+        if self.right:
+            yield from iter(self.right)

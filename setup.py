@@ -34,6 +34,6 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     entry_points={
-        'console_scripts': ['computorv2=computor.main:main']
+        'console_scripts': ['computorv2=computor.__main__:main']
     }
 )

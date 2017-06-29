@@ -1,3 +1,4 @@
+import re
 import logging
 from docopt import docopt
 from functools import partial
@@ -27,14 +28,25 @@ Usage:
 """
 
 
-def prompt_command():
+def prompt_command(prompt_string=">>> "):
     completer = WordCompleter(COMMANDS.keys())
-    return prompt(">>> ",
-                  history=FileHistory('.computor_history'),
-                  completer=completer,
-                  complete_while_typing=False,
-                  enable_history_search=True,
-                  get_title=partial(print, 'foo'))
+    prompt_line = partial(prompt,
+                          prompt_string,
+                          history=FileHistory('.computor_history'),
+                          completer=completer,
+                          complete_while_typing=False,
+                          enable_history_search=True,)
+    for line in iter(prompt_line, 'exit'):
+        yield line
+
+
+def _iter_file(filename):
+    with open(filename, 'r') as source:
+        for line in source.readlines():
+            if line.startswith('#'):
+                LOG.warning('Comment %s', line)
+                continue
+            yield line
 
 
 def set_log_level(verbose, debug):
@@ -52,8 +64,13 @@ def set_log_level(verbose, debug):
         LOG.debug("Start computorv2 in debug mode")
 
 
-def main_loop():
-    for line in iter(prompt_command, 'exit'):
+def _clear_line(line):
+    cleaner = re.compile(r'\s')
+    return cleaner.sub('', line)
+
+
+def main_loop(input_method=prompt_command):
+    for line in filter(bool, map(_clear_line ,input_method())):
         LOG.info('Command: %s', line)
         try:
             executor = Executor(line)
@@ -70,7 +87,10 @@ def main():
     opts = docopt(DOC, version=computor.__version__)
     set_log_level(opts['-v'], opts['-d'])
     try:
-        main_loop()
+        if opts['-i']:
+            main_loop(partial(_iter_file, opts['-i']))
+        else:
+            main_loop()
     except (EOFError, KeyboardInterrupt):
         print('exit')
 
