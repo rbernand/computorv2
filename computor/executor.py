@@ -70,7 +70,7 @@ class Executor:
         else:
             res = self._right()
         LOG.debug('Assigning value: %s to %s %s',
-                  res.tostring(),
+                  res,
                   ['variable', 'function'][isinstance(self._left, Function)],
                   self._left.name)
         destinations[self._left.__class__].add(self._left.name, res)
